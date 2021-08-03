@@ -28,7 +28,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('docs', app, document);
 
   app.enableCors({
     origin: true,
@@ -44,16 +44,17 @@ async function bootstrap() {
   let httpsPort = process.env.HTTPS_PORT ?? 3443
   Logger.log(`Api listening https on port ${httpsPort}`)
 
-  try {
-    let pfxHttpsCertFile = fs.readFileSync(process.env.SSL_CERTIFICATE_PATH)
+  http.createServer({}, server)
+  // try {
+  //   let pfxHttpsCertFile = fs.readFileSync(process.env.SSL_CERTIFICATE_PATH)
 
-    if (pfxHttpsCertFile)
-      https.createServer({
-        pfx: fs.readFileSync(process.env.SSL_CERTIFICATE_PATH),
-        passphrase: process.env.SSL_CERTIFICATE_PASSWORD ?? ''
-      }, server).listen(httpsPort);
-  } catch (error) {
-    Logger.error('Https not enabled because certificate file is not present')
-  }
+  //   if (pfxHttpsCertFile)
+  //     https.createServer({
+  //       pfx: fs.readFileSync(process.env.SSL_CERTIFICATE_PATH),
+  //       passphrase: process.env.SSL_CERTIFICATE_PASSWORD ?? ''
+  //     }, server).listen(httpsPort);
+  // } catch (error) {
+  //   Logger.error('Https not enabled because certificate file is not present')
+  // }
 }
 bootstrap();
