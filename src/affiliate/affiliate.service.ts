@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from 'src/mailer/mailer.service';
 import * as fs from 'fs'
-import { AffiliateEntity } from './affiliate-entity';
+import { Affiliate } from './affiliate-entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -11,21 +11,47 @@ export class AffiliateService {
 
     constructor(
         private mailerService: MailerService,
-        @InjectRepository(AffiliateEntity) private readonly affiliateRepository: Repository<AffiliateEntity>,
+        @InjectRepository(Affiliate) private readonly affiliateRepository: Repository<Affiliate>,
     ) {
         let file = fs.readFileSync('src/resources/affiliate_email_template.html')
         this.emailTemplate = file.toString()
     }
 
+    async retrieveAffiliate(affiliateId: String) {
+        return this.affiliateRepository.findOne({ where: { affiliateId: affiliateId } })
+    }
+
+    async registerUpdateAffiliate(data: { name: String, affiliateId: String, imgUrl: String }) {
+        const { name, affiliateId, imgUrl } = data
+        let affiliate = await this.retrieveAffiliate(affiliateId)
+        if (affiliate) {
+            return await this.updateAffiliate(affiliateId, { name: name, imgUrl: imgUrl })
+        }
+        return await this.registerAffiliate(data)
+    }
+
+    async registerAffiliate(data: { name: String, affiliateId: String, imgUrl: String }) {
+        const { name, affiliateId, imgUrl } = data
+        return await this.affiliateRepository.insert({ affiliateId: affiliateId, imgUrl: imgUrl, name: name })
+    }
+
+    async updateAffiliate(affiliateId: String, data: { name: String, imgUrl: String }) {
+        const { name, imgUrl } = data
+        let affiliate = await this.retrieveAffiliate(affiliateId)
+        affiliate.name = name
+        affiliate.imgUrl = imgUrl
+        return this.affiliateRepository.update({ id: affiliate.id }, affiliate)
+    }
+
     async registerAffiliate2() {
         await this.affiliateRepository.create({
             name: 'Teste',
-            picturePath: 'teste.png'
+            imgUrl: 'teste.png'
         })
         Logger.log('foi')
     }
 
-    async registerAffiliate(data: any, file: Express.Multer.File) {
+    async registerAffiliate3(data: any, file: Express.Multer.File) {
         Logger.log(data)
         let content = this.mountEmail(data)
 

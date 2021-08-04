@@ -1,6 +1,7 @@
-import { Body, Controller, HttpException, HttpStatus, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
+import { Affiliate } from './affiliate-entity';
 import { AffiliateService } from './affiliate.service';
 
 @ApiTags('Affiliate')
@@ -9,13 +10,24 @@ export class AffiliateController {
 
     constructor(private affiliateService: AffiliateService) { }
 
+    @Get('retrieve')
+    async retrieveAffiliateInfo(@Query('affiliateId') affiliateId: String) {
+        return await this.affiliateService.retrieveAffiliate(affiliateId)
+    }
+
     @Post('register')
+    async registerOrUpdateAffiliate(@Body() affiliate: Affiliate) {
+        return await this.affiliateService.registerUpdateAffiliate(affiliate)
+    }
+
+    @Post('a')
     @UseInterceptors(FileInterceptor('facadePicture'))
     async registerAffiliate(@UploadedFile() file: Express.Multer.File, @Body() data: any) {
         let requestBodyValidation = this.validateRequestBody(data)
         if (!!requestBodyValidation)
             throw new HttpException(requestBodyValidation, HttpStatus.BAD_REQUEST)
-        return this.affiliateService.registerAffiliate(data, file)
+        return null
+        // return this.affiliateService.registerAffiliate(data, file)
     }
 
     validateRequestBody(data: any): String {
